@@ -1,8 +1,9 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import { useLocalSearchParams } from 'expo-router';
+import { useTransactions } from '@/context/TransactionContext';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 
 export default function AddExpenseScreen() {
@@ -10,9 +11,11 @@ export default function AddExpenseScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const isDark = colorScheme === 'dark';
 
+    const { addTransaction } = useTransactions();
+
     const inputColors = {
         text: Colors[colorScheme].text,
-        background: isDark ? '1c1c1e' : '#fff',
+        background: isDark ? '#1c1c1e' : '#fff',
         border: isDark ? '#444' : '#ccc',
         placeholder: isDark ? '#888' : '#888',
     };
@@ -20,6 +23,27 @@ export default function AddExpenseScreen() {
     const [note, setNote] = useState('');
     const [paidBy, setPaidBy] = useState<'you' | 'partner'>('you');
     const { scope } = useLocalSearchParams<{ scope?: string }>();
+
+    const handleSave = () => {
+        const parsed = parseFloat(amount);
+        if (!amount.trim() || isNaN(parsed) || parsed <= 0) {
+            Alert.alert('Enter an amount', 'Use a number greater than 0');
+            return;
+        }
+
+        if (scope !== 'joint' && paidBy === 'partner') {
+            return;
+        }
+
+        addTransaction({
+            scope: scope as 'joint' | 'personal',
+            amountCents: Math.round(parsed * 100),
+            note,
+            paidBy: scope === 'joint' ? paidBy : null,
+        });
+
+        router.back();
+    };
 
     return (
         <View style={styles.container}>
@@ -77,6 +101,9 @@ export default function AddExpenseScreen() {
                     </View>
                 </>
             )}
+            <Pressable style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Save</Text>
+            </Pressable>
         </View>
     );
 
@@ -143,5 +170,16 @@ const styles = StyleSheet.create({
     },
     choiceTextActive: {
         color: '#2f95dc',
+    },
+    saveButton: {
+        backgroundColor: '#2f95dc',
+        padding: 10,
+        borderRadius: 8,
+        marginTop: 20,
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
     },
 })
