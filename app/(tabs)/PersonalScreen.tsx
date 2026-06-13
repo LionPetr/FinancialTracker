@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+import FloatingAddButton from '@/components/FloatingAddButton';
 import { Text, View } from '@/components/Themed';
 
 export default function PersonalScreen() {
@@ -9,6 +10,7 @@ export default function PersonalScreen() {
       <Text style={styles.title}>$0.00</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <Text style={styles.transactions}>No transactions yet</Text>
+      <FloatingAddButton scope="personal" />
     </View>
   );
 }
