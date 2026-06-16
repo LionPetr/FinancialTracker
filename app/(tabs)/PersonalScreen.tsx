@@ -1,15 +1,25 @@
 import { StyleSheet } from 'react-native';
 
+import ExpenseTabScreen from '@/components/ExpenseTabScreen';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { Text, View } from '@/components/Themed';
+import { useTransactions } from '@/context/TransactionContext';
 
 export default function PersonalScreen() {
+
+  const { getTotalCentsForScope } = useTransactions();
+
+  const totalCents = getTotalCentsForScope('personal');
+  const formatMoney = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Spent this Month</Text>
-      <Text style={styles.title}>$0.00</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Spent this Month</Text>
+        <Text style={styles.title}>{formatMoney(totalCents)}</Text>
+      </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <Text style={styles.transactions}>No transactions yet</Text>
+      <ExpenseTabScreen scope="personal" />
       <FloatingAddButton scope="personal" />
     </View>
   );
@@ -17,8 +27,12 @@ export default function PersonalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 24,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  header: {
+    padding: 24,
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,
@@ -29,9 +43,5 @@ const styles = StyleSheet.create({
     height: 1,
     width: '80%',
   },
-  transactions: {
-    fontSize: 16,
-    color: '#666',
-  }
 });
 
