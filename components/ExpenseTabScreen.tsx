@@ -5,9 +5,8 @@ import { useTransactions } from "@/context/TransactionContext";
 
 export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal' }) {
 
-    const { getTransactionsForScope, getTotalCentsForScope } = useTransactions();
+    const { getTransactionsForScope } = useTransactions();
     const transactions = getTransactionsForScope(scope);
-    const totalCents = getTotalCentsForScope(scope);
     const formatMoney = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
     return (
@@ -18,8 +17,8 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
                 <FlatList
                     data={[...transactions].reverse()}
                     keyExtractor={(item) => item.id}
-                    style={styles.listContent}
-                    contentContainerStyle={styles.list}
+                    style={styles.list}
+                    contentContainerStyle={styles.listContent}
                     renderItem={({ item: transaction }) => (
                         <View style={styles.row}>
                             <Text style={styles.mainLine} numberOfLines={1}>
@@ -27,7 +26,7 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
                             </Text>
                             {transaction.paidBy && (
                                 <Text style={styles.paidByText}>
-                                    {transaction.paidBy === 'you' ? 'You paid' : 'Partner paid'}
+                                    {scope === 'joint' && transaction.paidBy && (transaction.paidBy === 'you' ? 'You paid' : 'Partner paid')}
                                 </Text>
                             )}
                         </View>
@@ -40,7 +39,12 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
 
 const styles = StyleSheet.create({
     list: {
-        alignItems: 'stretch',
+        width: '100%',
+        flex: 1,
+    },
+    listContainer: {
+        flex: 1,
+        alignSelf: 'stretch',
         width: '100%',
     },
     paidByText: {

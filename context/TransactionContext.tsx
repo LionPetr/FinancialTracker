@@ -24,6 +24,16 @@ type TransactionContextValue = {
   getTotalCentsForScope: (scope: 'joint' | 'personal') => number;
 };
 
+function isThisMonth(isDate: string): boolean {
+  const date = new Date(isDate);
+  const now = new Date();
+
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth()
+  );
+}
+
 const TransactionContext = createContext<TransactionContextValue | null>(null);
 
 export function TransactionContextProvider({ children }: { children: ReactNode }) {
@@ -31,7 +41,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
 
   const value = useMemo<TransactionContextValue>(() => {
     const getTransactionsForScope = (scope: 'joint' | 'personal') =>
-      transactions.filter((transaction) => transaction.scope === scope);
+      transactions.filter((transaction) => transaction.scope === scope && isThisMonth(transaction.occurredAt));
 
     const getTotalCentsForScope = (scope: 'joint' | 'personal') =>
       getTransactionsForScope(scope).reduce(

@@ -31,10 +31,6 @@ export default function AddExpenseScreen() {
             return;
         }
 
-        if (scope !== 'joint' && paidBy === 'partner') {
-            return;
-        }
-
         addTransaction({
             scope: scope as 'joint' | 'personal',
             amountCents: Math.round(parsed * 100),
@@ -42,7 +38,13 @@ export default function AddExpenseScreen() {
             paidBy: scope === 'joint' ? paidBy : null,
         });
 
-        router.back();
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace(
+                scope === 'personal' ? '/(tabs)/PersonalScreen' : '/(tabs)/JointScreen'
+            );
+        }
     };
 
     return (
@@ -121,15 +123,6 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     input: {
-        width: '80%',
-        height: 40,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        marginVertical: 10,
-    },
-    picker: {
         width: '80%',
         height: 40,
         borderWidth: 1,
