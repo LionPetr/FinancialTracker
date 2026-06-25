@@ -1,9 +1,10 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useTransactions } from '@/context/TransactionContext';
+import { formatMoney } from '@/lib/money';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 
 export default function AddExpenseScreen() {
@@ -19,21 +20,22 @@ export default function AddExpenseScreen() {
         border: isDark ? '#444' : '#ccc',
         placeholder: isDark ? '#888' : '#888',
     };
-    const [amount, setAmount] = useState('');
+    const amountInputRef = useRef<TextInput>(null);
+    const [amountCents, setAmountCents] = useState(0);
     const [note, setNote] = useState('');
     const [paidBy, setPaidBy] = useState<'you' | 'partner'>('you');
     const { scope } = useLocalSearchParams<{ scope?: string }>();
 
-    const handleSave = () => {
-        const parsed = parseFloat(amount);
-        if (!amount.trim() || isNaN(parsed) || parsed <= 0) {
-            Alert.alert('Enter an amount', 'Use a number greater than 0');
-            return;
-        }
+    const [isFocused, setIsFocused] = useState(false);
 
+    const handleAmountChange = (text: string) => {
+        const digits = text.replace(/\D/g, '');
+        setAmountCents(parseInt(digits || '0', 10));
+    };
+    const handleSave = () => {
         addTransaction({
             scope: scope as 'joint' | 'personal',
-            amountCents: Math.round(parsed * 100),
+            amountCents: amountCents,
             note,
             paidBy: scope === 'joint' ? paidBy : null,
         });
@@ -50,13 +52,24 @@ export default function AddExpenseScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Adding to: {scope} account</Text>
+            <Pressable onPress={() => amountInputRef.current?.focus()}>
+                <View style={styles.amountRow}>
+                    <Text style={[styles.amountText, { color: inputColors.text }]}>{formatMoney(amountCents)}</Text>
+                    {isFocused && (
+                        <View style={[styles.caret, { backgroundColor: Colors[colorScheme].tint }]} />
+                    )}
+                </View>
+            </Pressable>
+
             <TextInput
-                style={[styles.input, { color: inputColors.text, backgroundColor: inputColors.background, borderColor: inputColors.border }]}
-                keyboardType="decimal-pad"
-                placeholder="0.00"
-                placeholderTextColor="#888"
-                value={amount}
-                onChangeText={setAmount}
+                ref={amountInputRef}
+                style={styles.hiddenInput}
+                keyboardType="number-pad"
+                value={amountCents === 0 ? '' : String(amountCents)}
+                onChangeText={handleAmountChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                autoFocus
             />
             <TextInput
                 style={[styles.input, { color: inputColors.text, backgroundColor: inputColors.background, borderColor: inputColors.border }]}
@@ -175,4 +188,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    amountText: {
+        fontSize: 40,
+        fontWeight: 'bold',
+    },
+    hiddenInput: {
+        position: 'absolute',
+        opacity: 0,
+        height: 1,
+        width: 1,
+    },
+    amountRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    caret: {
+        width: 2,
+        height: 40,
+        marginLeft: 1,
+        borderRadius: 1,
+    },
+
 })
