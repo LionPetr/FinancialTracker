@@ -4,13 +4,13 @@ import ExpenseTabScreen from '@/components/ExpenseTabScreen';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { Text, View } from '@/components/Themed';
 import { useTransactions } from '@/context/TransactionContext';
+import { formatMoney } from '@/lib/money';
 
 export default function PersonalScreen() {
 
   const { getTotalCentsForScope } = useTransactions();
 
   const totalCents = getTotalCentsForScope('personal');
-  const formatMoney = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
   return (
     <View style={styles.container}>

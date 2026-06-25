@@ -1,13 +1,13 @@
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
 import { useTransactions } from "@/context/TransactionContext";
+import { formatMoney } from '@/lib/money';
 
 
 export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal' }) {
 
     const { getTransactionsForScope } = useTransactions();
     const transactions = getTransactionsForScope(scope);
-    const formatMoney = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
     return (
         <View style={styles.list}>
