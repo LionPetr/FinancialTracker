@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { AuthProvider } from '@/context/AuthContext';
 import { TransactionContextProvider } from '@/context/TransactionContext';
-
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary
@@ -48,13 +48,15 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <TransactionContextProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="add-expense" options={{ presentation: 'modal', title: 'Add Expense' }} />
-        </Stack>
-      </TransactionContextProvider>
+      <AuthProvider>
+        <TransactionContextProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="add-expense" options={{ presentation: 'modal', title: 'Add Expense' }} />
+          </Stack>
+        </TransactionContextProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
