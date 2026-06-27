@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Session } from '@supabase/supabase-js';
+import type { AuthError, Session } from '@supabase/supabase-js';
 import {
     createContext,
     useContext,
@@ -13,9 +13,9 @@ type AuthContextValue = {
     session: Session | null;
     user: Session['user'] | null;
     loading: boolean;
-    signIn: (email: string, password: string) => Promise<unknown>;
-    signUp: (email: string, password: string) => Promise<unknown>;
-    signOut: () => Promise<unknown>;
+    signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+    signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+    signOut: () => Promise<{ error: AuthError | null }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
