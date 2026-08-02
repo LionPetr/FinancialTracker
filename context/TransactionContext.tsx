@@ -1,10 +1,14 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
+
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 type Transaction = {
   id: string;
@@ -34,10 +38,61 @@ function isThisMonth(isDate: string): boolean {
   );
 }
 
+type TransactionRow = {
+  id: string;
+  scope: 'joint' | 'personal';
+  amount_cents: number;
+  note: string;
+  paid_by_user_id: string | null;
+  occurred_at: string;
+};
+
+function mapRow(row: TransactionRow): Transaction {
+  return {
+    id: row.id,
+    scope: row.scope,
+    amountCents: row.amount_cents,
+    note: row.note,
+    paidBy: null,
+    occurredAt: row.occurred_at,
+  };
+}
+
 const TransactionContext = createContext<TransactionContextValue | null>(null);
 
 export function TransactionContextProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (!session) {
+      setTransactions([]);
+      return;
+    }
+
+    let active = true;
+
+    supabase
+      .from('transactions')
+      .select('id, scope, amount_cents, note, paid_by_user_id, occurred_at')
+      .order('occurred_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.error('Error fetching transactions:', error.message);
+          return;
+        }
+
+        setTransactions((data as TransactionRow[]).map(mapRow));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session?.user?.id]);
+
 
   const value = useMemo<TransactionContextValue>(() => {
     const getTransactionsForScope = (scope: 'joint' | 'personal') =>
@@ -50,14 +105,20 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
       );
 
     const addTransaction = (input: AddTransactionInput) => {
-      const transaction: Transaction = {
-        ...input,
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        occurredAt: new Date().toISOString(),
-      };
+      supabase.from('transactions').insert({
+        user_id: session?.user?.id,
+        scope: input.scope,
+        amount_cents: input.amountCents,
+        note: input.note,
+      }).select().then(({ data, error }) => {
+        if (error) {
+          console.error('Error storing transaction:', error.message);
+          return;
+        }
 
-      setTransactions((current) => [...current, transaction]);
-    };
+        setTransactions((current) => [...current, mapRow(data[0] as TransactionRow)]);
+      });
+    }
 
     return {
       transactions,
