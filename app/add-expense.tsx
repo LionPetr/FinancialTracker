@@ -1,5 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import Colors, { palette } from '@/constants/Colors';
 import { useTransactions } from '@/context/TransactionContext';
 import { formatMoney } from '@/lib/money';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -10,15 +10,15 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 export default function AddExpenseScreen() {
 
     const colorScheme = useColorScheme() ?? 'light';
-    const isDark = colorScheme === 'dark';
+    const theme = Colors[colorScheme];
 
     const { addTransaction } = useTransactions();
 
     const inputColors = {
-        text: Colors[colorScheme].text,
-        background: isDark ? '#1c1c1e' : '#fff',
-        border: isDark ? '#444' : '#ccc',
-        placeholder: isDark ? '#888' : '#888',
+        text: theme.text,
+        background: theme.background,
+        border: theme.border,
+        placeholder: theme.placeholder,
     };
     const amountInputRef = useRef<TextInput>(null);
     const [amountCents, setAmountCents] = useState(0);
@@ -51,7 +51,7 @@ export default function AddExpenseScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Adding to: {scope} account</Text>
+            <Text style={[styles.title, { color: inputColors.text }]}>Adding to: {scope} account</Text>
             <Pressable onPress={() => amountInputRef.current?.focus()}>
                 <View style={styles.amountRow}>
                     <Text style={[styles.amountText, { color: inputColors.text }]}>{formatMoney(amountCents)}</Text>
@@ -74,13 +74,13 @@ export default function AddExpenseScreen() {
             <TextInput
                 style={[styles.input, { color: inputColors.text, backgroundColor: inputColors.background, borderColor: inputColors.border }]}
                 placeholder="what is this for?"
-                placeholderTextColor="#888"
+                placeholderTextColor={inputColors.placeholder}
                 value={note}
                 onChangeText={setNote}
             />
             {scope === 'joint' && (
                 <>
-                    <Text style={styles.label}>Paid by</Text>
+                    <Text style={[styles.label, { color: inputColors.text }]}>Paid by</Text>
                     <View style={styles.choiceRow}>
                         <Pressable
                             style={[
@@ -92,7 +92,8 @@ export default function AddExpenseScreen() {
                             <Text
                                 style={[
                                     styles.choiceText,
-                                    paidBy === 'you' && styles.choiceTextActive,
+                                    { color: inputColors.text },
+                                    paidBy === 'you' && { color: theme.brand },
                                 ]}>
                                 You
                             </Text>
@@ -108,7 +109,8 @@ export default function AddExpenseScreen() {
                             <Text
                                 style={[
                                     styles.choiceText,
-                                    paidBy === 'partner' && styles.choiceTextActive,
+                                    { color: inputColors.text },
+                                    paidBy === 'partner' && { color: theme.brand },
                                 ]}>
                                 Partner
                             </Text>
@@ -133,13 +135,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#fff',
     },
     input: {
         width: '80%',
         height: 40,
         borderWidth: 1,
-        borderColor: '#ccc',
         borderRadius: 8,
         paddingHorizontal: 10,
         marginVertical: 10,
@@ -150,7 +150,6 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         alignSelf: 'flex-start',
         width: '80%',
-        color: '#fff',
     },
     choiceRow: {
         flexDirection: 'row',
@@ -166,25 +165,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     choiceButtonActive: {
-        borderColor: '#2f95dc',
-        backgroundColor: 'rgba(47, 149, 220, 0.15)',
+        borderColor: palette.brand,
+        backgroundColor: palette.brandSubtle,
     },
     choiceText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#fff',
-    },
-    choiceTextActive: {
-        color: '#2f95dc',
     },
     saveButton: {
-        backgroundColor: '#2f95dc',
+        backgroundColor: palette.brand,
         padding: 10,
         borderRadius: 8,
         marginTop: 20,
     },
     saveButtonText: {
-        color: '#fff',
+        color: palette.onBrand,
         fontSize: 16,
         fontWeight: '600',
     },

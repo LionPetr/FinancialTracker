@@ -1,5 +1,8 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { Text, View } from '@/components/Themed';
+import { FlatList, StyleSheet } from "react-native";
 
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 import { useTransactions } from "@/context/TransactionContext";
 import { formatMoney } from '@/lib/money';
 
@@ -8,11 +11,13 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
 
     const { getTransactionsForScope } = useTransactions();
     const transactions = getTransactionsForScope(scope);
+    const colorScheme = useColorScheme() ?? 'light';
+    const theme = Colors[colorScheme];
 
     return (
         <View style={styles.list}>
             {transactions.length === 0 ? (
-                <Text style={styles.transactions}>No transactions yet</Text>
+                <Text style={[styles.transactions, { color: theme.textMuted }]}>No transactions yet</Text>
             ) : (
                 <FlatList
                     data={[...transactions].reverse()}
@@ -20,12 +25,12 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
                     style={styles.list}
                     contentContainerStyle={styles.listContent}
                     renderItem={({ item: transaction }) => (
-                        <View style={styles.row}>
+                        <View style={[styles.row, { borderBottomColor: theme.separator }]}>
                             <Text style={styles.mainLine} numberOfLines={1}>
                                 {formatMoney(transaction.amountCents)} - {transaction.note || 'No note'}
                             </Text>
                             {transaction.paidBy && (
-                                <Text style={styles.paidByText}>
+                                <Text style={[styles.paidByText, { color: theme.textMuted }]}>
                                     {scope === 'joint' && transaction.paidBy && (transaction.paidBy === 'you' ? 'You paid' : 'Partner paid')}
                                 </Text>
                             )}
@@ -49,7 +54,6 @@ const styles = StyleSheet.create({
     },
     paidByText: {
         fontSize: 13,
-        color: '#888',
         marginTop: 4,
         textAlign: 'right',
     },
@@ -57,19 +61,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
         textAlign: 'left',
-        color: '#fff',
     },
     listContent: {
         paddingBottom: 96,
     },
     transactions: {
         fontSize: 16,
-        color: '#666',
     },
     row: {
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
         marginBottom: 16,
         gap: 8,
     },

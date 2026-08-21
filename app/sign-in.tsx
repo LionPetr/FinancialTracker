@@ -1,6 +1,9 @@
+import { Text, View } from '@/components/Themed';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { palette } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput } from 'react-native';
 
 export default function SignInScreen() {
     const { signIn, signUp } = useAuth();
@@ -9,6 +12,8 @@ export default function SignInScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const colorScheme = useColorScheme() ?? 'light';
+    const theme = Colors[colorScheme];
 
     const handleSubmit = async () => {
         setSubmitting(true);
@@ -24,18 +29,18 @@ export default function SignInScreen() {
             <Text style={styles.title}>{mode === 'signIn' ? 'Sign In' : 'Create Account'}</Text>
 
             <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
                 placeholder="Email"
-                placeholderTextColor="#888"
+                placeholderTextColor={theme.placeholder}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 value={email}
                 onChangeText={setEmail}
             />
             <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
                 placeholder="Password"
-                placeholderTextColor="#888"
+                placeholderTextColor={theme.placeholder}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
@@ -72,29 +77,27 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        color: '#fff',
         borderRadius: 8,
         padding: 12,
         fontSize: 16
     },
     button: {
-        backgroundColor: '#2f95dc',
+        backgroundColor: palette.brand,
         padding: 14,
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 8
     },
     buttonText: {
-        color: '#fff',
+        color: palette.onBrand,
         fontSize: 16,
         fontWeight: '600'
     },
     error: {
-        color: '#e3342f'
+        color: palette.danger
     },
     toggle: {
-        color: '#2f95dc',
+        color: palette.brand,
         textAlign: 'center',
         marginTop: 8
     },

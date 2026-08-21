@@ -5,6 +5,9 @@ const tintColorDark = '#fff';
 const brand = '#2f95dc';
 const onBrand = '#fff'; // text/icons that sit ON TOP of a brand-colored surface
 const danger = '#e3342f';
+const brandSubtle = brand + '26';
+
+export const palette = { brand, onBrand, danger, brandSubtle };
 
 export default {
   light: {
@@ -19,6 +22,7 @@ export default {
     brand,
     onBrand,
     danger,
+    brandSubtle,
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorLight,
   },
@@ -34,6 +38,7 @@ export default {
     brand,
     onBrand,
     danger,
+    brandSubtle,
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorDark,
   },
