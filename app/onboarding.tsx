@@ -3,14 +3,29 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { palette } from '@/constants/Colors';
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { Button, StyleSheet } from "react-native";
+import { useState } from 'react';
+import { Button, StyleSheet, TextInput } from "react-native";
 
 export default function OnboardingScreen() {
 
     const { refreshHousehold } = useAuth();
 
+    const [householdInviteCode, setHouseholdInviteCode] = useState('');
+
     const colorScheme = useColorScheme() ?? 'light';
     const theme = Colors[colorScheme];
+
+    const handleJoinHousehold = async (code: string) => {
+        const { error } = await supabase.rpc('join_household', {
+            p_invite_code: code.trim(),
+        });
+        if (error) {
+            console.log('Error joining household:', error.message);
+            return;
+        }
+
+        await refreshHousehold();
+    };
 
     const handleCreateHousehold = async () => {
         const { error } = await supabase.rpc('create_household', {
@@ -30,6 +45,21 @@ export default function OnboardingScreen() {
                 Create a new household or join an existing one. (coming soon.)
             </Text>
             <Button title="Create Household" onPress={handleCreateHousehold} />
+            <TextInput
+                style={[
+                    styles.input,
+                    {
+                        color: theme.text,
+                        backgroundColor: theme.card,
+                        borderColor: theme.border
+                    },
+                ]}
+                value={householdInviteCode}
+                onChangeText={setHouseholdInviteCode}
+                placeholder="Enter invite code"
+                placeholderTextColor={theme.placeholder}
+                autoCapitalize="characters" />
+            <Button title="Join Household" onPress={() => handleJoinHousehold(householdInviteCode)} />
         </View>
     );
 }
@@ -47,6 +77,12 @@ const styles = StyleSheet.create({
         color: palette.brand,
     },
     subtitle: {
+        fontSize: 16,
+    },
+    input: {
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 12,
         fontSize: 16,
     },
 });

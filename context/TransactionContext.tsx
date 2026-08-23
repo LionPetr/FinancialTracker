@@ -64,7 +64,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
 
-  const { session } = useAuth();
+  const { session, householdId } = useAuth();
 
   useEffect(() => {
     if (!session) {
@@ -110,6 +110,8 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
         scope: input.scope,
         amount_cents: input.amountCents,
         note: input.note,
+        household_id: input.scope === 'joint' ? householdId : null,
+        paid_by_user_id: input.paidBy === 'you' ? session?.user?.id : null,
       }).select().then(({ data, error }) => {
         if (error) {
           console.error('Error storing transaction:', error.message);
@@ -126,7 +128,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
       getTransactionsForScope,
       getTotalCentsForScope,
     };
-  }, [transactions]);
+  }, [transactions, householdId, session?.user?.id]);
 
   return (
     <TransactionContext.Provider value={value}>{children}</TransactionContext.Provider>
