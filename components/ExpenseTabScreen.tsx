@@ -3,6 +3,7 @@ import { FlatList, StyleSheet } from "react-native";
 
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from "@/context/TransactionContext";
 import { formatMoney } from '@/lib/money';
 
@@ -13,6 +14,8 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
     const transactions = getTransactionsForScope(scope);
     const colorScheme = useColorScheme() ?? 'light';
     const theme = Colors[colorScheme];
+
+    const { session } = useAuth();
 
     return (
         <View style={styles.list}>
@@ -31,7 +34,7 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
                             </Text>
                             {transaction.paidBy && (
                                 <Text style={[styles.paidByText, { color: theme.textMuted }]}>
-                                    {scope === 'joint' && transaction.paidBy && (transaction.paidBy === 'you' ? 'You paid' : 'Partner paid')}
+                                    {scope === 'joint' && transaction.paidBy && (transaction.paidBy === session?.user?.id ? 'You Paid' : 'Someone else Paid')}
                                 </Text>
                             )}
                         </View>

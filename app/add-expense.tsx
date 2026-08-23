@@ -1,13 +1,22 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { palette } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from '@/context/TransactionContext';
 import { formatMoney } from '@/lib/money';
+import { supabase } from '@/lib/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 
 export default function AddExpenseScreen() {
+
+    const { session, householdId } = useAuth();
+
+    type Member = { user_id: string; email: string };
+
+    const [members, setMembers] = useState<Member[]>([]);
+    const [paidByUserId, setPaidByUserId] = useState<string | null>(null);
 
     const colorScheme = useColorScheme() ?? 'light';
     const theme = Colors[colorScheme];
@@ -23,8 +32,11 @@ export default function AddExpenseScreen() {
     const amountInputRef = useRef<TextInput>(null);
     const [amountCents, setAmountCents] = useState(0);
     const [note, setNote] = useState('');
-    const [paidBy, setPaidBy] = useState<'you' | 'partner'>('you');
-    const { scope } = useLocalSearchParams<{ scope?: string }>();
+    const { scope: scopeParam } = useLocalSearchParams<{ scope?: string | string[] }>();
+    const scope = (Array.isArray(scopeParam) ? scopeParam[0] : scopeParam) as
+        | 'joint'
+        | 'personal'
+        | undefined;
 
     const [isFocused, setIsFocused] = useState(false);
 
@@ -33,11 +45,15 @@ export default function AddExpenseScreen() {
         setAmountCents(parseInt(digits || '0', 10));
     };
     const handleSave = () => {
+        if (scope === 'joint' && !paidByUserId) {
+            Alert.alert('Error', 'Please select who made the payment')
+            return;
+        }
         addTransaction({
             scope: scope as 'joint' | 'personal',
             amountCents: amountCents,
             note,
-            paidBy: scope === 'joint' ? paidBy : null,
+            paidBy: scope === 'personal' ? session?.user?.id ?? null : paidByUserId,
         });
 
         if (router.canGoBack()) {
@@ -48,6 +64,23 @@ export default function AddExpenseScreen() {
             );
         }
     };
+
+    useEffect(() => {
+        if (scope !== 'joint' || !householdId) return;
+
+        supabase
+            .rpc('get_household_members', { p_household_id: householdId })
+            .then(({ data, error }) => {
+                if (error) {
+                    console.error('Error fetching household members:', error.message);
+                    return;
+                }
+                const list = (data ?? []) as Member[];
+                setMembers(list);
+
+                if (session?.user?.id) setPaidByUserId(session.user.id);
+            });
+    }, [scope, householdId, session?.user?.id]);
 
     return (
         <View style={styles.container}>
@@ -80,41 +113,34 @@ export default function AddExpenseScreen() {
             />
             {scope === 'joint' && (
                 <>
-                    <Text style={[styles.label, { color: inputColors.text }]}>Paid by</Text>
+                    <Text style={[styles.label, { color: inputColors.text }, { marginLeft: '10%' }]}>Paid by</Text>
                     <View style={styles.choiceRow}>
-                        <Pressable
-                            style={[
-                                styles.choiceButton,
-                                { borderColor: inputColors.border },
-                                paidBy === 'you' && styles.choiceButtonActive,
-                            ]}
-                            onPress={() => setPaidBy('you')}>
-                            <Text
-                                style={[
-                                    styles.choiceText,
-                                    { color: inputColors.text },
-                                    paidBy === 'you' && { color: theme.brand },
-                                ]}>
-                                You
-                            </Text>
-                        </Pressable>
-
-                        <Pressable
-                            style={[
-                                styles.choiceButton,
-                                { borderColor: inputColors.border },
-                                paidBy === 'partner' && styles.choiceButtonActive,
-                            ]}
-                            onPress={() => setPaidBy('partner')}>
-                            <Text
-                                style={[
-                                    styles.choiceText,
-                                    { color: inputColors.text },
-                                    paidBy === 'partner' && { color: theme.brand },
-                                ]}>
-                                Partner
-                            </Text>
-                        </Pressable>
+                        {members.map((m) => {
+                            const selected = paidByUserId === m.user_id;
+                            const label = m.user_id === session?.user?.id ? 'You' : m.email;
+                            return (
+                                <Pressable
+                                    key={m.user_id}
+                                    style={[
+                                        styles.choiceButton,
+                                        { borderColor: inputColors.border },
+                                        selected && styles.choiceButtonActive,
+                                    ]}
+                                    onPress={() => setPaidByUserId(m.user_id)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.choiceText,
+                                            { color: inputColors.text },
+                                            selected && { color: theme.brand },
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {label}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
                     </View>
                 </>
             )}
@@ -153,10 +179,13 @@ const styles = StyleSheet.create({
     },
     choiceRow: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         width: '80%',
         gap: 12,
     },
     choiceButton: {
+        minWidth: '45%',
+        flexGrow: 1,
         flex: 1,
         height: 44,
         borderWidth: 1,

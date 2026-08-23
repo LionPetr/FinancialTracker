@@ -1,0 +1,9 @@
+- add settings and move household code into there. 
+- add nicknames to users so they can set their name (per household?)
+- add categories to expenses
+- add cleaner overview 
+- add household managment (leaving households, joining new households)
+- household owner member managments (adding members, promoting members, removing members)
+- refactor to put all the frontend componenets in a library system 
+- add a settlement option (venmod half )
+- add a total net between household members. 

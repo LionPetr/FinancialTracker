@@ -15,7 +15,7 @@ type Transaction = {
   scope: 'joint' | 'personal';
   amountCents: number;
   note: string;
-  paidBy: 'you' | 'partner' | null;
+  paidBy: string | null;
   occurredAt: string;
 };
 
@@ -53,7 +53,7 @@ function mapRow(row: TransactionRow): Transaction {
     scope: row.scope,
     amountCents: row.amount_cents,
     note: row.note,
-    paidBy: null,
+    paidBy: row.paid_by_user_id,
     occurredAt: row.occurred_at,
   };
 }
@@ -111,7 +111,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
         amount_cents: input.amountCents,
         note: input.note,
         household_id: input.scope === 'joint' ? householdId : null,
-        paid_by_user_id: input.paidBy === 'you' ? session?.user?.id : null,
+        paid_by_user_id: input.scope === 'personal' ? session?.user?.id ?? null : input.paidBy,
       }).select().then(({ data, error }) => {
         if (error) {
           console.error('Error storing transaction:', error.message);
