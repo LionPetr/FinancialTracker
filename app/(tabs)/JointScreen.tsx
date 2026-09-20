@@ -48,9 +48,6 @@ export default function JointScreen() {
       </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <ExpenseTabScreen scope="joint" />
-
-
-
       <FloatingAddButton scope="joint" />
     </View>
   );
@@ -70,9 +67,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   separator: {
-    marginVertical: 30,
+    marginTop: 30,
+    marginBottom: 0,
     height: 1,
-    width: '80%',
+    width: '100%',
   },
   note: {
     fontSize: 12,

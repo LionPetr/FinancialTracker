@@ -1,11 +1,13 @@
 import { Text, View } from '@/components/Themed';
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList, View as RNView, StyleSheet } from "react-native";
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { getCategory, getContrastText } from '@/constants/Categories';
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from "@/context/TransactionContext";
 import { formatMoney } from '@/lib/money';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 
 export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal' }) {
@@ -27,18 +29,27 @@ export default function ExpenseTabScreen({ scope }: { scope: 'joint' | 'personal
                     keyExtractor={(item) => item.id}
                     style={styles.list}
                     contentContainerStyle={styles.listContent}
-                    renderItem={({ item: transaction }) => (
-                        <View style={[styles.row, { borderBottomColor: theme.separator }]}>
-                            <Text style={styles.mainLine} numberOfLines={1}>
-                                {formatMoney(transaction.amountCents)} - {transaction.note || 'No note'}
-                            </Text>
-                            {transaction.paidBy && (
-                                <Text style={[styles.paidByText, { color: theme.textMuted }]}>
-                                    {scope === 'joint' && transaction.paidBy && (transaction.paidBy === session?.user?.id ? 'You Paid' : 'Someone else Paid')}
-                                </Text>
-                            )}
-                        </View>
-                    )}
+                    renderItem={({ item: transaction }) => {
+                        const category = getCategory(transaction.category);
+                        return (
+                            <View style={[styles.row, { borderBottomColor: theme.separator }]}>
+                                <View style={styles.rowContent}>
+                                    <Text style={styles.mainLine} numberOfLines={1}>
+                                        {formatMoney(transaction.amountCents)} - {transaction.note || 'No note'}
+                                    </Text>
+                                    {transaction.paidBy && (
+                                        <Text style={[styles.paidByText, { color: theme.textMuted }]}>
+                                            {scope === 'joint' && transaction.paidBy && (transaction.paidBy === session?.user?.id ? 'You Paid' : 'Someone else Paid')}
+                                        </Text>
+                                    )}
+                                </View>
+                                <RNView style={[styles.banner, { backgroundColor: category.color }]}>
+                                    <MaterialCommunityIcons name={category.icon} size={16} color={getContrastText(category.color)} />
+                                    <RNView style={[styles.bannerNotch, { borderBottomColor: theme.background }]} />
+                                </RNView>
+                            </View>
+                        );
+                    }}
                 />
             )}
         </View>
@@ -72,9 +83,36 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     row: {
-        padding: 16,
         borderBottomWidth: 1,
-        marginBottom: 16,
+        //marginBottom: 16,
+    },
+    rowContent: {
+        padding: 16,
+        paddingRight: 52,
         gap: 8,
+    },
+    banner: {
+        position: 'absolute',
+        top: 0,
+        right: 16,
+        width: 28,
+        height: 40,
+        overflow: 'visible',
+        alignItems: 'center',
+        paddingTop: 5,
+    },
+    bannerNotch: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+        backgroundColor: 'transparent',
+        borderTopWidth: 0,
+        borderLeftWidth: 14,
+        borderRightWidth: 14,
+        borderBottomWidth: 14,
+        borderLeftColor: 'transparent',
+        borderRightColor: 'transparent',
     },
 })

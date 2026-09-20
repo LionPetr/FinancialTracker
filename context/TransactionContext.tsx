@@ -17,6 +17,7 @@ type Transaction = {
   note: string;
   paidBy: string | null;
   occurredAt: string;
+  category: string | null;
 };
 
 type AddTransactionInput = Omit<Transaction, 'id' | 'occurredAt'>;
@@ -45,6 +46,7 @@ type TransactionRow = {
   note: string;
   paid_by_user_id: string | null;
   occurred_at: string;
+  category: string | null;
 };
 
 function mapRow(row: TransactionRow): Transaction {
@@ -55,6 +57,7 @@ function mapRow(row: TransactionRow): Transaction {
     note: row.note,
     paidBy: row.paid_by_user_id,
     occurredAt: row.occurred_at,
+    category: row.category,
   };
 }
 
@@ -76,7 +79,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
 
     supabase
       .from('transactions')
-      .select('id, scope, amount_cents, note, paid_by_user_id, occurred_at')
+      .select('id, scope, amount_cents, note, paid_by_user_id, occurred_at, category')
       .order('occurred_at', { ascending: false })
       .then(({ data, error }) => {
         if (!active) return;
@@ -112,6 +115,7 @@ export function TransactionContextProvider({ children }: { children: ReactNode }
         note: input.note,
         household_id: input.scope === 'joint' ? householdId : null,
         paid_by_user_id: input.scope === 'personal' ? session?.user?.id ?? null : input.paidBy,
+        category: input.category,
       }).select().then(({ data, error }) => {
         if (error) {
           console.error('Error storing transaction:', error.message);

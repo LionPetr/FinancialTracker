@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import { Categories } from '@/constants/Categories';
 import Colors, { palette } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from '@/context/TransactionContext';
@@ -6,7 +7,7 @@ import { formatMoney } from '@/lib/money';
 import { supabase } from '@/lib/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 
 export default function AddExpenseScreen() {
@@ -17,6 +18,7 @@ export default function AddExpenseScreen() {
 
     const [members, setMembers] = useState<Member[]>([]);
     const [paidByUserId, setPaidByUserId] = useState<string | null>(null);
+    const [category, setCategory] = useState<string | null>(null);
 
     const colorScheme = useColorScheme() ?? 'light';
     const theme = Colors[colorScheme];
@@ -54,6 +56,7 @@ export default function AddExpenseScreen() {
             amountCents: amountCents,
             note,
             paidBy: scope === 'personal' ? session?.user?.id ?? null : paidByUserId,
+            category,
         });
 
         if (router.canGoBack()) {
@@ -83,7 +86,11 @@ export default function AddExpenseScreen() {
     }, [scope, householdId, session?.user?.id]);
 
     return (
-        <View style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+        >
             <Text style={[styles.title, { color: inputColors.text }]}>Adding to: {scope} account</Text>
             <Pressable onPress={() => amountInputRef.current?.focus()}>
                 <View style={styles.amountRow}>
@@ -111,6 +118,33 @@ export default function AddExpenseScreen() {
                 value={note}
                 onChangeText={setNote}
             />
+            <Text style={[styles.label, { color: theme.text }, { marginLeft: '10%' }]}>Category</Text>
+            <View style={styles.choiceRow}>
+                {Categories.map((cat) => {
+                    const selected = category === cat.id;
+                    return (
+                        <Pressable
+                            key={cat.id}
+                            style={[
+                                styles.categoryChoiceButton,
+                                { borderColor: selected ? cat.color : theme.border },
+                                selected && { backgroundColor: cat.color + '22' },
+                            ]}
+                            onPress={() => setCategory(cat.id)}
+                        >
+                            <Text
+                                style={[
+                                    styles.choiceText,
+                                    { color: selected ? cat.color : theme.text },
+                                ]}
+                                numberOfLines={1}
+                            >
+                                {cat.label}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+            </View>
             {scope === 'joint' && (
                 <>
                     <Text style={[styles.label, { color: inputColors.text }, { marginLeft: '10%' }]}>Paid by</Text>
@@ -122,7 +156,7 @@ export default function AddExpenseScreen() {
                                 <Pressable
                                     key={m.user_id}
                                     style={[
-                                        styles.choiceButton,
+                                        styles.paidByButton,
                                         { borderColor: inputColors.border },
                                         selected && styles.choiceButtonActive,
                                     ]}
@@ -147,7 +181,7 @@ export default function AddExpenseScreen() {
             <Pressable style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Save</Text>
             </Pressable>
-        </View>
+        </ScrollView>
     );
 
 
@@ -156,7 +190,11 @@ export default function AddExpenseScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    content: {
         alignItems: 'center',
+        paddingVertical: 24,
+        paddingBottom: 64,
     },
     title: {
         fontSize: 20,
@@ -183,15 +221,23 @@ const styles = StyleSheet.create({
         width: '80%',
         gap: 12,
     },
-    choiceButton: {
-        minWidth: '45%',
-        flexGrow: 1,
-        flex: 1,
+    categoryChoiceButton: {
+        minWidth: '37%',
         height: 44,
         borderWidth: 1,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    paidByButton: {
+        flex: 1,
+        minWidth: '45%',
+        height: 44,
+        borderWidth: 1,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
     },
     choiceButtonActive: {
         borderColor: palette.brand,
