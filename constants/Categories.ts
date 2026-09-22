@@ -1,10 +1,10 @@
 export const Categories = [
-    { id: 'groceries', label: 'Groceries', color: '#4170FA', icon: 'food-variant' },      //blue 
-    { id: 'takeout', label: 'Takeout', color: '#FC1E1E', icon: 'food' },          //red
-    { id: 'bills', label: 'Bills', color: '#CF7200', icon: 'home-alert-outline' },              //brown
-    { id: 'activities', label: 'Activities', color: '#F2FF00', icon: 'ferris-wheel' },    //yellow
-    { id: 'health', label: 'Health', color: '#4BF516', icon: 'heart-pulse' },            //green
-    { id: 'shopping', label: 'Shopping', color: '#9402BD', icon: 'shopping' },        //purple
+    { id: 'groceries', label: 'Groceries', color: '#7A95FF', icon: 'food-variant' },      //blue 
+    { id: 'dining', label: 'Dining', color: '#FF7A7A', icon: 'food' },          //red
+    { id: 'bills', label: 'Bills', color: '#FFB17A', icon: 'home-alert-outline' },              //brown
+    { id: 'activities', label: 'Activities', color: '#FFE47A', icon: 'ferris-wheel' },    //yellow
+    { id: 'health', label: 'Health', color: '#95FF7A', icon: 'heart-pulse' },            //green
+    { id: 'shopping', label: 'Shopping', color: '#E47AFF', icon: 'shopping' },        //purple
     { id: 'other', label: 'Other', color: '#666666', icon: 'robot-confused' }               //grey
 ] as const;
 
